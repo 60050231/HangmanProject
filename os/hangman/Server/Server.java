@@ -13,7 +13,7 @@ public class Server {
     //static ServerSocket variable
     private static ServerSocket server;
     //socket server port on which it will listen
-    private static int port = 9876;
+    private static int port = 1234;
 
     public static void main(String args[]) throws ClassNotFoundException {
         //create the socket server object
@@ -25,29 +25,32 @@ public class Server {
             server = new ServerSocket(port);
 
             while(true){
-                System.out.println("Waiting for the client request");
+                System.out.println("[Server] Waiting for the client request");
                 Socket socket = server.accept();
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 String message = (String) ois.readObject();
-                System.out.println("Message Received: " + message);
+                System.out.println("[Server] Message Received: " + message);
                 Random rand = new Random();
                 int newPort = rand.nextInt(9000)+1000;
                 MultiThreadRespond mr = new MultiThreadRespond(newPort);
                 thread = new Thread(mr);
                 thread.start();
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                oos.writeObject("Your port is "+newPort);
+                oos.writeObject(""+newPort);
 
                 ois.close();
                 oos.close();
                 socket.close();
+                i++;
+
             }
         } catch (IOException ex) {
             try {
                 server.close();
-            } catch (IOException err) {
-                System.err.println("ERROR closing socket: " + err.getMessage());
+            } catch (IOException e) {
+                System.err.println("ERROR closing socket: " + e.getMessage());
             }
         }
     }
+
 }

@@ -1,6 +1,5 @@
 package os.hangman.Server;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -10,8 +9,9 @@ public class MultiThreadRespond implements Runnable{
 
     private ServerSocket server;
     private int port;
-    private ObjectOutputStream oos;
-    private ObjectInputStream ois;
+    private ObjectOutputStream ObjectOutput;
+    private ObjectInputStream ObjectInput;
+    private
 
     public MultiThreadRespond(int port){
         this.port = port;
@@ -28,21 +28,22 @@ public class MultiThreadRespond implements Runnable{
         while(true){
             try{
                 Socket socket = server.accept();
-                //read from socket to ObjectInputStream object
-                ois = new ObjectInputStream(socket.getInputStream());
-                //convert ObjectInputStream object to String
-                String message = (String) ois.readObject();
-                System.out.println("Message Received: " + message);
-                //create ObjectOutputStream object
-                oos = new ObjectOutputStream(socket.getOutputStream());
-                //write object to Socket
-                oos.writeObject("Hi Client "+message);
-                //close resources
-                ois.close();
-                oos.close();
-                socket.close();
-                //terminate the server if client sends exit request
-                if(message.equalsIgnoreCase("exit")) break;
+                ObjectInput = new ObjectInputStream(socket.getInputStream());
+                ObjectOutput = new ObjectOutputStream(socket.getOutputStream());
+                while (true) {
+                    String message = (String) ObjectInput.readObject();
+
+                    if (message.equalsIgnoreCase("START")) {
+                        System.out.println("[Thread] Message Received: " + message);
+                    }
+                    else {
+                        System.out.println("[Thread] Message Received: " + message);
+                        ObjectInput.close();
+                        ObjectOutput.close();
+                        socket.close();
+                        break;
+                    }
+                }
             }catch(Exception e){
 
             }

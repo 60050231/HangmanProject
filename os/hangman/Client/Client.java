@@ -1,6 +1,6 @@
 package os.hangman.Client;
 
-import java.io.BufferedReader;
+import java.util.Scanner;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -8,28 +8,75 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client {
-    protected BufferedReader consoleReader;
+    private static int port = 1234;
+
+    private static Socket socket = null;
+    private static ObjectOutputStream objectOutput = null;
+    private static ObjectInputStream objectInput = null;
 
     public static void main(String[] args){
         Client gameClient = new Client();
         gameClient.run();
     }
 
-    protected void run() {
-        System.out.println("Client-Server Hangman game is starting...");
-        //toPlayOrNotToPlay();
-        //sendObject("TEST");
-        System.out.println("Client-Server Hangman game is stopping...");
+    public void run() {
+        while (true) {
+            try {
+                //get the localhost IP address
+                InetAddress host = InetAddress.getLocalHost();
+
+                //init socket with localhost and port
+                socket = new Socket("127.0.0.1", port);
+
+                //sending request new port
+                objectOutput = new ObjectOutputStream(socket.getOutputStream());
+                objectOutput.writeObject("Client request new port");
+
+                //get new port
+                objectInput = new ObjectInputStream(socket.getInputStream());
+                String newPort = (String) objectInput.readObject();
+                System.out.println("new Port: " + newPort);
+
+                //switch to new port
+                socket = new Socket("127.0.0.1", Integer.parseInt(newPort));
+                objectOutput = new ObjectOutputStream(socket.getOutputStream());
+                //sendObject("Sent to thread");
+                objectInput = new ObjectInputStream(socket.getInputStream());
+                //System.out.println((String) objectInput.readObject());
+
+                //just some announcement
+                System.out.println("Client - Server Hangman game is starting...");
+                System.out.println("Connecting to "+ host + " Port : " + newPort);
+
+                while (true) {
+                    if (toPlayOrNot()) {}
+                    else break;
+                }
+
+                //toPlayOrNotToPlay();
+
+                System.out.println("Client - Server Hangman game is stopping...");
+
+                //close resources
+                objectInput.close();
+                objectOutput.close();
+                break;
+            }
+            catch(IOException | ClassNotFoundException err){
+                System.out.print(err);
+            }
+        }
+
     }
 
-    protected void toPlayOrNotToPlay() {
+    protected boolean toPlayOrNot() {
+        Scanner keyboardInput = new Scanner (System.in);
         String userInput = null;
         while (true) {
             System.out.print("Do you want to play? (y/n) ");
             try {
-                userInput = this.consoleReader.readLine();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                userInput = keyboardInput.nextLine();
+            } catch (Exception ex) {
                 stopGame();
                 break;
             }
@@ -39,6 +86,7 @@ public class Client {
                 break;
             } else if (userInput.equals("y")) {
                 startGame();
+                return true;
             } else if (userInput.equals("n")) {
                 stopGame();
                 break;
@@ -46,39 +94,22 @@ public class Client {
                 System.out.println("Invalid input.");
             }
         }
+        return false;
     }
 
     protected void startGame() {
-        sendObject("START");
+        sendObject("Start");
     }
 
     protected void stopGame() {
-        sendObject("STOP");
+        sendObject("Exit");
     }
 
     protected void sendObject(String request){
         try {
-            //get the localhost IP address, if server is running on some other IP, you need to use that
-            InetAddress host = InetAddress.getLocalHost();
-            Socket socket = null;
-            ObjectOutputStream oos = null;
-            ObjectInputStream ois = null;
-            int port = 9876;
-            socket = new Socket("127.0.0.1", port);
-            oos = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("Sending request to Socket Server");
-            oos.writeObject(request);
-            ois = new ObjectInputStream(socket.getInputStream());
-            String message = (String) ois.readObject();
-            //port = Integer.parseInt(message);
-            System.out.println("Message : " + message);
-            //close resources
-            ois.close();
-            oos.close();
-            Thread.sleep(1000);
-        }
-        catch(IOException | ClassNotFoundException | InterruptedException err){
-            System.out.print(err);
+            objectOutput.writeObject(request);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
