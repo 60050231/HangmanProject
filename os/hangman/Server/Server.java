@@ -29,7 +29,7 @@ public class Server {
                 Socket socket = server.accept();
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 String message = (String) ois.readObject();
-                System.out.println("[Server] Message Received: " + message);
+                System.out.println("[Server] Message Received : " + message);
                 Random rand = new Random();
                 int newPort = rand.nextInt(9000)+1000;
                 MultiThreadRespond mr = new MultiThreadRespond(newPort);

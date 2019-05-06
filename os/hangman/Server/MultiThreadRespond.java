@@ -9,8 +9,10 @@ public class MultiThreadRespond implements Runnable{
 
     private ServerSocket server;
     private int port;
-    private ObjectOutputStream ObjectOutput;
-    private ObjectInputStream ObjectInput;
+    private ObjectOutputStream objectOutput;
+    private ObjectInputStream objectInput;
+
+    private static int MAX_TRY = 7;
 
     public MultiThreadRespond(int port){
         this.port = port;
@@ -24,14 +26,13 @@ public class MultiThreadRespond implements Runnable{
 
     @Override
     public void run(){
-        String []word = {"Batman", "Deadpool", "Avatar"};
+        String []word = {"Batman", "Deadpool"};
         int randRange = (int) (Math.random() * word.length);
         String randWord = word[randRange].toLowerCase();
         char []hiddenWord = new char[randWord.length()];
-        String user_guess = "";
-        int miss_chance = 0;
-        char[] missed = new char[7];
-        boolean letter_found = false, solved = false;
+        int missedCount = 0;
+        char[] missedWord = new char[7];
+        boolean letterFound, solved = false;
 
         int isWin = 0;
         int isLose = 0;
@@ -48,26 +49,67 @@ public class MultiThreadRespond implements Runnable{
         while(true){
             try{
                 Socket socket = server.accept();
-                ObjectInput = new ObjectInputStream(socket.getInputStream());
-                ObjectOutput = new ObjectOutputStream(socket.getOutputStream());
+                objectInput = new ObjectInputStream(socket.getInputStream());
+                objectOutput = new ObjectOutputStream(socket.getOutputStream());
                 while (true) {
-                    String message = (String) ObjectInput.readObject();
-                    if (message.equalsIgnoreCase("START")) {
-                        System.out.println("[Thread] Message Received: " + message);
-                    }
-                    else {
-                        System.out.println("[Thread] Message Received: " + message);
-                        ObjectInput.close();
-                        ObjectOutput.close();
+                    System.out.println("\nHidden Word: ");
+                    String action = (String) objectInput.readObject();
+                    if (action.equals("START") || action.equals("STATUS")) {
+                        System.out.println("[Thread] Message Received : " + action);
+                        String output = new String(hiddenWord) + "#" + new String(missedWord) + "#" + missedCount + "#" + isWin + "#" + isLose;
+                        System.out.println(output);
+                        objectOutput.writeObject(output);
+                    } else if (action.substring(0,6).equals("guess:")) {
+                        System.out.println("[Thread] Guess Received : " + action);
+                        /// get Client input
+                        String userGuess = action.substring(6, 7);
+                        System.out.print("\nGuess: " + userGuess);
+
+                        /// Game Logical
+                        letterFound = false;
+                        for (int i = 0; i < randWord.length(); i++) {
+                            if (userGuess.toLowerCase().charAt(0) == randWord.toLowerCase().charAt(i)) {
+                                hiddenWord[i] = randWord.charAt(i);
+                                letterFound = true;
+                            }
+                        }
+                        if (!letterFound) {
+                            missedWord[missedCount] = userGuess.charAt(0);
+                            missedCount++;
+                        }
+
+                        int hiddenLeft = 0;
+                        for (int i = 0; i < randWord.length(); i++) {
+                            if ('_' == hiddenWord[i])
+                                hiddenLeft++;
+                        }
+                        if (hiddenLeft > 0) {
+                            solved = false;
+                        } else {
+                            solved = true;
+                        }
+                    } else if (action.equals("getAnswer") && isLose == 1) {
+                        objectOutput.writeObject(randWord);
+                    } else {
+                        System.out.println("[Thread] msg : " + action);
+                        System.out.println("Exiting ...");
+                        objectInput.close();
+                        objectOutput.close();
                         socket.close();
                         break;
                     }
+                    /// check win or lose
+                    if (missedCount >= MAX_TRY){
+                        isLose = 1;
+
+                    }
+                    if (solved){
+                        isWin = 1;
+                    }
                 }
-            }catch(Exception err){
+            } catch(Exception err){
                 err.printStackTrace();
             }
-
         }
     }
-
 }
