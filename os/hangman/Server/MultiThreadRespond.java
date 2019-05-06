@@ -10,23 +10,22 @@ public class MultiThreadRespond implements Runnable{
 
     private ServerSocket server;
     private int port;
-    private ObjectOutputStream objectOutput;
-    private ObjectInputStream objectInput;
-
-    private static int MAX_TRY = 7;
 
     public MultiThreadRespond(int port){
         this.port = port;
         try{
             server = new ServerSocket(port);
-        }catch(Exception e){
-
+        }catch(Exception err){
+            err.printStackTrace();
         }
-
     }
 
     @Override
     public void run(){
+        int MAX_TRY = 7;
+        ObjectOutputStream objectOutput;
+        ObjectInputStream objectInput;
+
         String []word = {"Batman", "Deadpool"};
         int randRange = (int) (Math.random() * word.length);
         String randWord = word[randRange].toLowerCase();
@@ -39,7 +38,6 @@ public class MultiThreadRespond implements Runnable{
         int isWin = 0;
         int isLose = 0;
 
-        //make hidden word
         for (int i = 0; i < randWord.length(); i++) {
             if (randWord.charAt(i) == ' ') {
                 hiddenWord[i] = ' ';
@@ -48,65 +46,61 @@ public class MultiThreadRespond implements Runnable{
             }
         }
 
-        while(true){
-            try{
-                Socket socket = server.accept();
-                objectInput = new ObjectInputStream(socket.getInputStream());
-                objectOutput = new ObjectOutputStream(socket.getOutputStream());
-                while (true) {
-                    //System.out.println("\nHidden Word: ");
-                    String action = (String) objectInput.readObject();
-                    if (hiddenLeft == 0) {
-                        isWin = 1;
-                    }
-                    if (missedCount == MAX_TRY){
-                        isLose = 1;
-                    }
-                    if (action.equals("START") || action.equals("STATUS")) {
-                        System.out.println("[Thread] Command Received : " + action);
-                        String output = new String(hiddenWord) + "#" + new String(missedWord) + "#" + missedCount + "#" + isWin + "#" + isLose;
-                        System.out.println(output);
-                        objectOutput.writeObject(output);
-                    }
-                    else if (action.equals("ANSWER")) {
-                        System.out.println("[Thread] Command Received : " + action);
-                        objectOutput.writeObject(randWord);
-                    }
-                    else if (action.substring(0,6).equals("guess:")) {
-                        System.out.println("[Thread] Guess Received : " + action);
-                        /// get Client input
-                        char userGuess = action.substring(6, 7).charAt(0);
+        try{
+            Socket socket = server.accept();
+            objectInput = new ObjectInputStream(socket.getInputStream());
+            objectOutput = new ObjectOutputStream(socket.getOutputStream());
+            while (true) {
+                String action = (String) objectInput.readObject();
+                if (hiddenLeft == 0) {
+                    isWin = 1;
+                }
+                if (missedCount == MAX_TRY){
+                    isLose = 1;
+                }
+                if (action.equals("STATUS")) {
+                    System.out.println("[Thread] Command Received : " + action);
+                    String output = new String(hiddenWord) + "#" + new String(missedWord) + "#" + missedCount + "#" + isWin + "#" + isLose;
+                    System.out.println(output);
+                    objectOutput.writeObject(output);
+                }
+                else if (action.length() == 1) {
+                    System.out.println("[Thread] Guess Received : " + action);
+                    char userGuess = action.charAt(0);
 
-                        /// Game Logical
-                        boolean letterFound = false;
-                        for (int i = 0; i < randWord.length(); i++) {
-                            if (userGuess == randWord.charAt(i)) {
-                                hiddenWord[i] = randWord.charAt(i);
-                                letterFound = true;
-                            }
-                        }
-                        if (!letterFound) {
-                            missedWord[missedCount] = userGuess;
-                            missedCount++;
-                        }
-
-                        hiddenLeft = randWord.length();
-                        for (int i = 0; i < randWord.length(); i++) {
-                            if ('_' != hiddenWord[i])
-                                hiddenLeft--;
+                    boolean letterFound = false;
+                    for (int i = 0; i < randWord.length(); i++) {
+                        if (userGuess == randWord.charAt(i)) {
+                            hiddenWord[i] = randWord.charAt(i);
+                            letterFound = true;
                         }
                     }
-                    else {
-                        System.out.println("[Thread] Command Received : " + action);
-                        objectInput.close();
-                        objectOutput.close();
-                        socket.close();
-                        break;
+                    if (!letterFound) {
+                        missedWord[missedCount] = userGuess;
+                        missedCount++;
+                    }
+
+                    hiddenLeft = randWord.length();
+                    for (int i = 0; i < randWord.length(); i++) {
+                        if ('_' != hiddenWord[i])
+                            hiddenLeft--;
                     }
                 }
-            } catch(Exception err){
-                err.printStackTrace();
+                else if (action.equals("ANSWER")) {
+                    System.out.println("[Thread] Command Received : " + action);
+                    objectOutput.writeObject(randWord);
+                    System.out.println(randWord);
+                }
+                else if (action.equals("EXIT")){
+                    System.out.println("[Thread] Command Received : " + action);
+                    objectInput.close();
+                    objectOutput.close();
+                    socket.close();
+                    break;
+                }
             }
+        } catch(IOException | ClassNotFoundException err){
+            err.printStackTrace();
         }
     }
 }

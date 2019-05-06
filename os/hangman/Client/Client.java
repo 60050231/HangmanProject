@@ -8,9 +8,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client {
-    private static int port = 1234;
 
-    private static Socket socket = null;
     private static ObjectOutputStream objectOutput = null;
     private static ObjectInputStream objectInput = null;
 
@@ -29,14 +27,15 @@ public class Client {
         gameClient.run();
     }
 
-    public void run() {
+    private void run() {
         while (true) {
             try {
                 //get the localhost IP address
                 InetAddress localhost = InetAddress.getLocalHost();
 
                 //init socket with localhost and port
-                socket = new Socket(localhost, port);
+                int port = 1234;
+                Socket socket = new Socket(localhost, port);
 
                 //sending request new port
                 objectOutput = new ObjectOutputStream(socket.getOutputStream());
@@ -58,20 +57,15 @@ public class Client {
 
                 System.out.print("Do you want to play? (y/n) : ");
                 if (toPlayOrNot()) {
-                    objectOutput.writeObject("START");
-                    //getStatus();
-                    int round = 1;
                     while (true) {
-                        System.out.println("\n ========== ROUND " + round + " ========== \n");
+                        System.out.println("\n ============================= \n");
                         while (true) {
                             getStatus();
                             if (isWin == 1 || isLose == 1) break;
                             System.out.println("You have " + (MAX_TRY - missedCount) + " chance left");
                             System.out.println("Word : " + hiddenWord);
                             System.out.println("Missed : " + missedWord);
-                            sendObject("guess:" + inputGuess());
-                            getStatus();
-
+                            sendObject(inputGuess());
                             System.out.println("\n =============================\n");
                         }
 
@@ -79,7 +73,7 @@ public class Client {
                             System.out.println( "You WIN!! :D" );
                             System.out.println( "The word is " + hiddenWord );
                         }
-                        else if (isLose == 1) {
+                        else {
                             String answer = getAnswer();
                             System.out.println("You LOSE!! :p");
                             System.out.println("The word is " + answer);
@@ -94,14 +88,14 @@ public class Client {
                         break;
                     }
                 }
-                System.out.println("Client - Server Hangman game is stopping...");
+                System.out.println("\nClient - Server Hangman game is stopping...");
                 objectOutput.writeObject("EXIT");
                 objectInput.close();
                 objectOutput.close();
                 break;
             }
             catch(IOException | ClassNotFoundException err){
-                System.out.print(err);
+                err.printStackTrace();
             }
         }
     }
@@ -133,7 +127,7 @@ public class Client {
     }
 
     private boolean toPlayOrNot() {
-        String userInput = null;
+        String userInput;
         while (true) {
             try {
                 userInput = keyboardInput.nextLine();
@@ -141,9 +135,7 @@ public class Client {
                 break;
             }
             userInput = userInput.trim().toLowerCase();
-            if (userInput == null) {
-                break;
-            } else if (userInput.equals("y")) {
+            if (userInput.equals("y")) {
                 return true;
             } else if (userInput.equals("n")) {
                 break;
