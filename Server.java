@@ -11,15 +11,19 @@ public class Server{
     static DataOutputStream dataOutputStream = null;
     static DataInputStream dataInputStream = null;
     
-    public static void main(String []args) throws IOException {
+    public static void main(String []args) throws InterruptedException,IOException {
         serverSocket = new ServerSocket(9988);
         socket = serverSocket.accept();
-        dataOutputStream = new DataOutputStream(socket.getOutputStream());
-        dataOutputStream.writeUTF("Hello Client. I'm Find^^");
-
+        
         dataInputStream =new DataInputStream(socket.getInputStream());
         String msg_in = dataInputStream.readUTF();
         System.out.println("Client :"+ msg_in);
+        
+        dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        Thread.sleep(3000);
+        dataOutputStream.writeUTF("Hello Client. I'm Find^^");
+
+        
 
         dataInputStream.close();
         dataOutputStream.close();
