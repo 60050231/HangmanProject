@@ -15,12 +15,6 @@ public class Server {
     //socket server port on which it will listen
     private static int port = 9876;
 
-    public static final String GAME_PLAY = "PLAY";
-    public static final String GAME_STOP = "STOP";
-    public static final String GAME_OVER = "OVER";
-    public static final String GAME_WON = "WON";
-    public static final String GAME_LOST = "LOST";
-
     public static void main(String args[]) throws ClassNotFoundException {
         //create the socket server object
 
@@ -42,7 +36,7 @@ public class Server {
                 thread = new Thread(mr);
                 thread.start();
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                oos.writeObject("This is answer : "+newPort);
+                oos.writeObject("Your port is "+newPort);
 
                 ois.close();
                 oos.close();
@@ -51,8 +45,8 @@ public class Server {
         } catch (IOException ex) {
             try {
                 server.close();
-            } catch (IOException e) {
-                System.err.println("ERROR closing socket: " + e.getMessage());
+            } catch (IOException err) {
+                System.err.println("ERROR closing socket: " + err.getMessage());
             }
         }
     }
