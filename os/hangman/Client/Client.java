@@ -20,6 +20,8 @@ public class Client {
     private static int isWin = 0;
     private static int isLose = 0;
 
+    private static boolean isContinue = true;
+
     private static Scanner keyboardInput = new Scanner (System.in);
 
     public static void main(String[] args){
@@ -28,7 +30,7 @@ public class Client {
     }
 
     private void run() {
-        while (true) {
+        while (isContinue) {
             try {
                 //get the localhost IP address
                 InetAddress localhost = InetAddress.getLocalHost();
@@ -55,44 +57,34 @@ public class Client {
                 System.out.println("Client - Server Hangman game is starting...");
                 System.out.println("Connecting to "+ localhost + " Port : " + newPort);
 
-                System.out.print("Do you want to play? (y/n) : ");
-                if (toPlayOrNot()) {
+                System.out.print("\nDo you want to play? (y/n) : ");
+                isContinue = toPlayOrNot();
+                if (isContinue) {
+                    System.out.println("\n ============================= \n");
                     while (true) {
-                        System.out.println("\n ============================= \n");
-                        while (true) {
-                            getStatus();
-                            if (isWin == 1 || isLose == 1) break;
-                            System.out.println("You have " + (MAX_TRY - missedCount) + " chance left");
-                            System.out.println("Word : " + hiddenWord);
-                            System.out.println("Missed : " + missedWord);
-                            sendObject(inputGuess());
-                            System.out.println("\n =============================\n");
-                        }
+                        getStatus();
+                        if (isWin == 1 || isLose == 1) break;
+                        System.out.println("You have " + (MAX_TRY - missedCount) + " chance left");
+                        System.out.println("Word : " + hiddenWord);
+                        System.out.println("Missed : " + missedWord);
+                        sendObject(inputGuess());
+                        System.out.println("\n =============================\n");
+                    }
 
-                        if (isWin == 1){
-                            System.out.println( "You WIN!! :D" );
-                            System.out.println( "The word is " + hiddenWord );
-                        }
-                        else {
-                            String answer = getAnswer();
-                            System.out.println("You LOSE!! :p");
-                            System.out.println("The word is " + answer);
-                        }
-                        /*
-                        System.out.print("Do you want to play again? (y/n) : ");
-                        if (toPlayOrNot()) {
-                            round++;
-                        }
-                        else break;
-                        */
-                        break;
+                    if (isWin == 1){
+                        System.out.println( "You WIN!! :D" );
+                        System.out.println( "The word is " + hiddenWord );
+                    }
+                    else {
+                        String answer = getAnswer();
+                        System.out.println("You LOSE!! :p");
+                        System.out.println("The word is " + answer);
                     }
                 }
-                System.out.println("\nClient - Server Hangman game is stopping...");
+                System.out.println("\nClient - Server Hangman game is stopping...\n");
                 objectOutput.writeObject("EXIT");
                 objectInput.close();
                 objectOutput.close();
-                break;
             }
             catch(IOException | ClassNotFoundException err){
                 err.printStackTrace();
@@ -118,8 +110,7 @@ public class Client {
     private static String getAnswer(){
         try {
             objectOutput.writeObject("ANSWER");
-            String input = (String) objectInput.readObject();
-            return input;
+            return (String) objectInput.readObject();
         } catch (IOException | ClassNotFoundException err) {
             err.printStackTrace();
         }
