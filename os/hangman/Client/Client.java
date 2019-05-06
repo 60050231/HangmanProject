@@ -56,30 +56,33 @@ public class Client {
                 System.out.println("Client - Server Hangman game is starting...");
                 System.out.println("Connecting to "+ localhost + " Port : " + newPort);
 
-                getStatus();
                 System.out.print("Do you want to play? (y/n) : ");
                 if (toPlayOrNot()) {
                     objectOutput.writeObject("START");
+                    //getStatus();
                     int round = 1;
                     while (true) {
                         System.out.println("\n ========== ROUND " + round + " ========== \n");
-                        while (isWin == 0 && isLose == 0) {
+                        while (true) {
                             getStatus();
+                            if (isWin == 1 || isLose == 1) break;
                             System.out.println("You have " + (MAX_TRY - missedCount) + " chance left");
                             System.out.println("Word : " + hiddenWord);
                             System.out.println("Missed : " + missedWord);
                             sendObject("guess:" + inputGuess());
-                            System.out.println("\n =============================\n");
                             getStatus();
+
+                            System.out.println("\n =============================\n");
                         }
+
                         if (isWin == 1){
                             System.out.println( "You WIN!! :D" );
-                            System.out.println( "The word is..." + hiddenWord );
+                            System.out.println( "The word is " + hiddenWord );
                         }
                         else if (isLose == 1) {
                             String answer = getAnswer();
                             System.out.println("You LOSE!! :p");
-                            System.out.println("The word is..." + answer);
+                            System.out.println("The word is " + answer);
                         }
                         /*
                         System.out.print("Do you want to play again? (y/n) : ");
@@ -91,8 +94,8 @@ public class Client {
                         break;
                     }
                 }
-
                 System.out.println("Client - Server Hangman game is stopping...");
+                objectOutput.writeObject("EXIT");
                 objectInput.close();
                 objectOutput.close();
                 break;
@@ -113,7 +116,6 @@ public class Client {
             missedCount = Integer.parseInt(detail[2]);
             isWin = Integer.parseInt(detail[3]);
             isLose = Integer.parseInt(detail[4]);
-
         } catch (IOException | ClassNotFoundException err) {
             err.printStackTrace();
         }
