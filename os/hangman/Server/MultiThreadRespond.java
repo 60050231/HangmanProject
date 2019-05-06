@@ -11,7 +11,6 @@ public class MultiThreadRespond implements Runnable{
     private int port;
     private ObjectOutputStream ObjectOutput;
     private ObjectInputStream ObjectInput;
-    private
 
     public MultiThreadRespond(int port){
         this.port = port;
@@ -25,6 +24,27 @@ public class MultiThreadRespond implements Runnable{
 
     @Override
     public void run(){
+        String []word = {"Batman", "Deadpool", "Avatar"};
+        int randRange = (int) (Math.random() * word.length);
+        String randWord = word[randRange].toLowerCase();
+        char []hiddenWord = new char[randWord.length()];
+        String user_guess = "";
+        int miss_chance = 0;
+        char[] missed = new char[7];
+        boolean letter_found = false, solved = false;
+
+        int isWin = 0;
+        int isLose = 0;
+
+        //make hidden word
+        for (int i = 0; i < randWord.length(); i++) {
+            if (randWord.charAt(i) == ' ') {
+                hiddenWord[i] = ' ';
+            } else {
+                hiddenWord[i] = '_';
+            }
+        }
+
         while(true){
             try{
                 Socket socket = server.accept();
@@ -32,7 +52,6 @@ public class MultiThreadRespond implements Runnable{
                 ObjectOutput = new ObjectOutputStream(socket.getOutputStream());
                 while (true) {
                     String message = (String) ObjectInput.readObject();
-
                     if (message.equalsIgnoreCase("START")) {
                         System.out.println("[Thread] Message Received: " + message);
                     }
@@ -44,8 +63,8 @@ public class MultiThreadRespond implements Runnable{
                         break;
                     }
                 }
-            }catch(Exception e){
-
+            }catch(Exception err){
+                err.printStackTrace();
             }
 
         }

@@ -14,12 +14,22 @@ public class Client {
     private static ObjectOutputStream objectOutput = null;
     private static ObjectInputStream objectInput = null;
 
+    private static final int MAX_TRY = 7;
+
+    private static String hiddenWord = "";
+    private static String missedWord = "";
+    private static int missed = 0;
+    private static int isWin = 0;
+    private static int isLose = 0;
+
+    private static Scanner keyboardInput = new Scanner (System.in);
+
     public static void main(String[] args){
         Client gameClient = new Client();
         gameClient.run();
     }
 
-    public void run() {
+    private void run() {
         while (true) {
             try {
                 //get the localhost IP address
@@ -40,24 +50,48 @@ public class Client {
                 //switch to new port
                 socket = new Socket("127.0.0.1", Integer.parseInt(newPort));
                 objectOutput = new ObjectOutputStream(socket.getOutputStream());
-                //sendObject("Sent to thread");
                 objectInput = new ObjectInputStream(socket.getInputStream());
-                //System.out.println((String) objectInput.readObject());
 
                 //just some announcement
                 System.out.println("Client - Server Hangman game is starting...");
                 System.out.println("Connecting to "+ host + " Port : " + newPort);
 
-                while (true) {
-                    if (toPlayOrNot()) {}
-                    else break;
+                System.out.print("Do you want to play? (y/n) : ");
+                if (toPlayOrNot()) {
+                    int round = 1;
+                    while (true) {
+                        System.out.println("\n ========== ROUND " + round + " ========== \n");
+                        while (isWin == 0 && isLose == 0) {
+                            System.out.println("You have " + (MAX_TRY - missed) + " chance left");
+                            System.out.println("Word : " + hiddenWord);
+                            System.out.println("Missed : " + missedWord);
+                            System.out.print("Guess : ");
+                            System.out.println("\n =============================\n");
+                            sendObject(keyboardInput.nextLine());
+
+                            getStatus();
+                            break;
+                        }
+                        if (isWin==1){
+                            System.out.println( "You WIN!! :D" );
+                            System.out.println( "The word is..." + hiddenWord );
+
+                        }
+                        else if (isLose ==1) {
+                            String answer = getAnswer();
+                            System.out.println("You LOSE!! :p");
+                            System.out.println("The word is..." + answer);
+                        }
+
+                        System.out.print("Do you want to play again? (y/n) : ");
+                        if (toPlayOrNot()) {
+                            round++;
+                        }
+                        else break;
+                    }
                 }
 
-                //toPlayOrNotToPlay();
-
                 System.out.println("Client - Server Hangman game is stopping...");
-
-                //close resources
                 objectInput.close();
                 objectOutput.close();
                 break;
@@ -66,29 +100,54 @@ public class Client {
                 System.out.print(err);
             }
         }
-
     }
 
-    protected boolean toPlayOrNot() {
-        Scanner keyboardInput = new Scanner (System.in);
+    private static void getStatus(){
+        try {
+            objectOutput.writeObject("STATUS");
+            String input = (String) objectInput.readObject();
+            String[] detail = input.split(",");
+
+            hiddenWord = detail[0];
+            missedWord = detail[1];
+            missed = Integer.parseInt(detail[2]);
+            isWin = Integer.parseInt(detail[3]);
+            isLose = Integer.parseInt(detail[4]);
+
+        } catch (IOException | ClassNotFoundException err) {
+            err.printStackTrace();
+        }
+    }
+
+    private static String getAnswer(){
+        try {
+            objectOutput.writeObject("ANSWER");
+            String input = (String) objectInput.readObject();
+            return input;
+        } catch (IOException | ClassNotFoundException err) {
+            err.printStackTrace();
+        }
+        return "";
+    }
+
+    private boolean toPlayOrNot() {
         String userInput = null;
         while (true) {
-            System.out.print("Do you want to play? (y/n) ");
             try {
                 userInput = keyboardInput.nextLine();
             } catch (Exception ex) {
-                stopGame();
+                sendObject("EXIT");
                 break;
             }
             userInput = userInput.trim().toLowerCase();
             if (userInput == null) {
-                stopGame();
+                sendObject("EXIT");
                 break;
             } else if (userInput.equals("y")) {
-                startGame();
+                sendObject("START");
                 return true;
             } else if (userInput.equals("n")) {
-                stopGame();
+                sendObject("EXIT");
                 break;
             } else {
                 System.out.println("Invalid input.");
@@ -97,19 +156,11 @@ public class Client {
         return false;
     }
 
-    protected void startGame() {
-        sendObject("Start");
-    }
-
-    protected void stopGame() {
-        sendObject("Exit");
-    }
-
-    protected void sendObject(String request){
+    private void sendObject(String request){
         try {
             objectOutput.writeObject(request);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException err) {
+            err.printStackTrace();
         }
     }
 }
