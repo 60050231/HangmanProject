@@ -27,8 +27,8 @@ public class MultiThreadRespond implements Runnable {
         ObjectInputStream objectInput;
 
         String[] word = {
-                "Batman",
-                "Deadpool"
+                "Batman","Deadpool","Starwars","Terminator","Ironman","Transformers","Startrek","Superman","Alita","JurassicWorld"
+                ,"Thor","CaptainAmerica","Spiderman","WarmBody","CaptainMarvel","Kingsman","MissionImpossible","NothingHills","Avatar","Antman"
         };
         
         int randRange = (int)(Math.random() * word.length);
