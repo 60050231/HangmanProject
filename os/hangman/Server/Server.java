@@ -17,32 +17,27 @@ public class Server {
 
     public static void main(String args[]) throws ClassNotFoundException {
         //create the socket server object
-
-        //keep listens indefinitely until receives 'exit' call or program terminates
-        int i =0;
         Thread thread = null;
         try {
             server = new ServerSocket(port);
-
-            while(true){
+            while (true) {
                 System.out.println("[Server] Waiting for the client request");
                 Socket socket = server.accept();
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 String message = (String) ois.readObject();
                 System.out.println("[Server] Message Received : " + message);
                 Random rand = new Random();
-                int newPort = rand.nextInt(9000)+1000;
+                int newPort = rand.nextInt(9000) + 1000;
                 MultiThreadRespond mr = new MultiThreadRespond(newPort);
                 thread = new Thread(mr);
                 thread.start();
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                oos.writeObject(""+newPort);
+                oos.writeObject("" + newPort);
 
+                //close
                 ois.close();
                 oos.close();
                 socket.close();
-                i++;
-
             }
         } catch (IOException ex) {
             try {
@@ -52,5 +47,4 @@ public class Server {
             }
         }
     }
-
 }

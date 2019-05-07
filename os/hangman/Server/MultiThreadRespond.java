@@ -6,32 +6,35 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class MultiThreadRespond implements Runnable{
+public class MultiThreadRespond implements Runnable {
 
     private ServerSocket server;
     private int port;
 
-    public MultiThreadRespond(int port){
+    public MultiThreadRespond(int port) {
         this.port = port;
-        try{
+        try {
             server = new ServerSocket(port);
-        }catch(Exception err){
+        } catch (Exception err) {
             err.printStackTrace();
         }
     }
 
     @Override
-    public void run(){
+    public void run() {
         int MAX_TRY = 7;
         ObjectOutputStream objectOutput;
         ObjectInputStream objectInput;
 
-        String []word = {"Batman", "Deadpool"};
-        int randRange = (int) (Math.random() * word.length);
+        String[] word = {
+                "Batman",
+                "Deadpool"
+        };
+        
+        int randRange = (int)(Math.random() * word.length);
         String randWord = word[randRange].toLowerCase();
-
-        char []hiddenWord = new char[randWord.length()];
-        char []missedWord = new char[7];
+        char[] hiddenWord = new char[randWord.length()];
+        char[] missedWord = new char[7];
 
         int missedCount = 0;
         int hiddenLeft = 1;
@@ -46,7 +49,7 @@ public class MultiThreadRespond implements Runnable{
             }
         }
 
-        try{
+        try {
             Socket socket = server.accept();
             objectInput = new ObjectInputStream(socket.getInputStream());
             objectOutput = new ObjectOutputStream(socket.getOutputStream());
@@ -55,7 +58,7 @@ public class MultiThreadRespond implements Runnable{
                 if (hiddenLeft == 0) {
                     isWin = 1;
                 }
-                if (missedCount == MAX_TRY){
+                if (missedCount == MAX_TRY) {
                     isLose = 1;
                 }
                 if (action.equals("STATUS")) {
@@ -63,8 +66,7 @@ public class MultiThreadRespond implements Runnable{
                     String output = new String(hiddenWord) + "#" + new String(missedWord) + "#" + missedCount + "#" + isWin + "#" + isLose;
                     System.out.println(output);
                     objectOutput.writeObject(output);
-                }
-                else if (action.length() == 1) {
+                } else if (action.length() == 1) {
                     System.out.println("[Thread] Guess Received : " + action);
                     char userGuess = action.charAt(0);
 
@@ -75,6 +77,7 @@ public class MultiThreadRespond implements Runnable{
                             letterFound = true;
                         }
                     }
+
                     if (!letterFound) {
                         missedWord[missedCount] = userGuess;
                         missedCount++;
@@ -85,13 +88,11 @@ public class MultiThreadRespond implements Runnable{
                         if ('_' != hiddenWord[i])
                             hiddenLeft--;
                     }
-                }
-                else if (action.equals("ANSWER")) {
+                } else if (action.equals("ANSWER")) {
                     System.out.println("[Thread] Command Received : " + action);
                     objectOutput.writeObject(randWord);
                     System.out.println(randWord);
-                }
-                else if (action.equals("EXIT")){
+                } else if (action.equals("EXIT")) {
                     System.out.println("[Thread] Command Received : " + action);
                     objectInput.close();
                     objectOutput.close();
@@ -99,7 +100,7 @@ public class MultiThreadRespond implements Runnable{
                     break;
                 }
             }
-        } catch(IOException | ClassNotFoundException err){
+        } catch (IOException | ClassNotFoundException err) {
             err.printStackTrace();
         }
     }

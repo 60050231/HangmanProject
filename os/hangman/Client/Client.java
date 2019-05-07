@@ -1,5 +1,6 @@
 package os.hangman.Client;
 
+import java.net.ConnectException;
 import java.util.Scanner;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,25 +13,24 @@ public class Client {
     private static ObjectOutputStream objectOutput = null;
     private static ObjectInputStream objectInput = null;
 
+    private static boolean isContinue = true;
     private static final int MAX_TRY = 7;
-
     private static String hiddenWord = "";
     private static String missedWord = "";
     private static int missedCount = 0;
     private static int isWin = 0;
     private static int isLose = 0;
 
-    private static boolean isContinue = true;
+    private static Scanner keyboardInput = new Scanner(System.in);
 
-    private static Scanner keyboardInput = new Scanner (System.in);
-
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Client gameClient = new Client();
         gameClient.run();
     }
 
     private void run() {
-        while (isContinue) {
+        int timeoutLeft = 10;
+        while (isContinue && timeoutLeft > 0) {
             try {
                 //get the localhost IP address
                 InetAddress localhost = InetAddress.getLocalHost();
@@ -55,7 +55,7 @@ public class Client {
 
                 //just some announcement
                 System.out.println("Client - Server Hangman game is starting...");
-                System.out.println("Connecting to "+ localhost + " Port : " + newPort);
+                System.out.println("Connecting to " + localhost + " Port : " + newPort);
 
                 System.out.print("\nDo you want to play? (y/n) : ");
                 isContinue = toPlayOrNot();
@@ -71,11 +71,10 @@ public class Client {
                         System.out.println("\n =============================\n");
                     }
 
-                    if (isWin == 1){
-                        System.out.println( "You WIN!! :D" );
-                        System.out.println( "The word is " + hiddenWord );
-                    }
-                    else {
+                    if (isWin == 1) {
+                        System.out.println("You WIN!! :D");
+                        System.out.println("The word is " + hiddenWord);
+                    } else {
                         String answer = getAnswer();
                         System.out.println("You LOSE!! :p");
                         System.out.println("The word is " + answer);
@@ -85,18 +84,20 @@ public class Client {
                 objectOutput.writeObject("EXIT");
                 objectInput.close();
                 objectOutput.close();
-            }
-            catch(IOException | ClassNotFoundException err){
+            } catch (ConnectException err) {
+                System.out.println("Connection lost ... Reconnecting ... " + timeoutLeft);
+                timeoutLeft--;
+            } catch (IOException | ClassNotFoundException err) {
                 err.printStackTrace();
             }
         }
     }
 
-    private static void getStatus(){
+    private static void getStatus() {
         try {
             objectOutput.writeObject("STATUS");
             String input = (String) objectInput.readObject();
-            String []detail = input.split("#");
+            String[] detail = input.split("#");
             hiddenWord = detail[0];
             missedWord = detail[1];
             missedCount = Integer.parseInt(detail[2]);
@@ -107,7 +108,7 @@ public class Client {
         }
     }
 
-    private static String getAnswer(){
+    private static String getAnswer() {
         try {
             objectOutput.writeObject("ANSWER");
             return (String) objectInput.readObject();
@@ -137,23 +138,21 @@ public class Client {
         return false;
     }
 
-    private String inputGuess () {
+    private String inputGuess() {
         String guess;
         while (true) {
             System.out.print("Guess : ");
             guess = keyboardInput.nextLine().trim().toLowerCase();
             if (guess.length() > 1) {
                 System.out.println("Invalid input.");
-            }
-            else if (guess.equals("")) {
+            } else if (guess.equals("")) {
                 System.out.println("Invalid input.");
-            }
-            else break;
+            } else break;
         }
         return guess;
     }
 
-    private void sendObject(String request){
+    private void sendObject(String request) {
         try {
             objectOutput.writeObject(request);
         } catch (IOException err) {
