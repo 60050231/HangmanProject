@@ -1,0 +1,31 @@
+How to Push and pull Your Images
+
+/*Push */
+//Log into the Docker Hub from the command line
+docker login 
+--username=yourhubusername
+--password=yourpassword
+
+//Check the image ID using
+docker images
+
+//tag your image
+docker tag {Yourimages} yourhubusername/yourdepository
+
+//Push your image to the repository you created
+docker push yourhubusername/yourdepository
+
+
+/*pull*/
+//Log into the Docker Hub from the command line
+docker login 
+--username=yourhubusername
+--password=yourpassword
+
+//Pull your image 
+docker pull yourhubusername/yourdepository
+
+//wait for download
+//and Run your yourhubusername/yourdepository
+
+docker run {server},{Client}
