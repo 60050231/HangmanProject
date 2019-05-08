@@ -82,10 +82,11 @@ public class Client {
                 objectOutput.writeObject("EXIT");
                 objectInput.close();
                 objectOutput.close();
+                Thread.sleep(1000);
             } catch (ConnectException err) {
                 System.out.println("Connection lost ... Reconnecting ... " + timeoutLeft);
                 timeoutLeft--;
-            } catch (IOException | ClassNotFoundException err) {
+            } catch (InterruptedException | IOException | ClassNotFoundException err) {
                 err.printStackTrace();
             }
         }
