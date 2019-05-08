@@ -45,7 +45,6 @@ public class Client {
                 //get new port
                 objectInput = new ObjectInputStream(socket.getInputStream());
                 String newPort = (String) objectInput.readObject();
-                System.out.println("new Port: " + newPort);
 
                 //switch to new port
                 socket = new Socket(serverip, Integer.parseInt(newPort));
@@ -53,8 +52,8 @@ public class Client {
                 objectInput = new ObjectInputStream(socket.getInputStream());
 
                 //just some announcement
-                System.out.println("Client - Server Hangman game is starting...");
-                System.out.println("Connecting to " + localhost + " Port : " + newPort);
+                System.out.println("\nClient - Server Hangman game is starting...");
+                System.out.println("\nConnecting to " + serverip + " Port : " + newPort);
 
                 System.out.print("\nDo you want to play? (y/n) : ");
                 isContinue = toPlayOrNot();

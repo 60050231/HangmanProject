@@ -11,6 +11,6 @@ docker inspect -f "{{ .NetworkSettings.IPAddress }}" Server
 docker build -t=hmg-client client/.
 docker run -i --name Client hmg-client
 
-//run Hangman Game again
+//run Hangman again (docker start for fisrt time)
 docker start Client
 docker exec -i Client java Client
