@@ -32,8 +32,8 @@ public class Client {
             try {
                 //get the localhost IP address
                 InetAddress localhost = InetAddress.getLocalHost(); // if use same address
-				String serverip = "172.17.0.2"; // for other address
-				int port = 1234;
+		String serverip = "172.17.0.2"; // for other address
+		int port = 1234;
 
                 //init socket with ip and port
                 Socket socket = new Socket(serverip, port);
