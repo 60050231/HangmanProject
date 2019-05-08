@@ -1,0 +1,16 @@
+//first - use cd to go to docker folder
+
+//build container for server and run
+docker build -t=hmg-server server/.
+docker run -d --name Server hmg-server
+
+//check server container ip for edit server ip in Client.java
+docker inspect -f "{{ .NetworkSettings.IPAddress }}" Server
+
+//build container for client and run
+docker build -t=hmg-client client/.
+docker run -i --name Client hmg-client
+
+//run Hangman Game again
+docker start Client
+docker exec -i Client java Client
